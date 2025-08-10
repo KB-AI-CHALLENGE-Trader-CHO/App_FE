@@ -1,20 +1,58 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import "./src/utils/dayjsConfig"; // Apply dayjs plugins globally
+import "react-native-gesture-handler";
+import React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function App() {
+import HomeScreen from "./src/screens/HomeScreen";
+import StatsScreen from "./src/screens/StatsScreen";
+import AiReportScreen from "./src/screens/AiReportScreen";
+
+const Tab = createBottomTabNavigator();
+
+const App = () => {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarActiveTintColor: "#3067D9",
+          tabBarInactiveTintColor: "gray",
+        }}
+      >
+        <Tab.Screen
+          name="홈"
+          component={HomeScreen}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="home-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="요약 통계"
+          component={StatsScreen}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="bar-chart-outline" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="AI 리포트"
+          component={AiReportScreen}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="sparkles-outline" size={size} color={color} />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+    </NavigationContainer>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;

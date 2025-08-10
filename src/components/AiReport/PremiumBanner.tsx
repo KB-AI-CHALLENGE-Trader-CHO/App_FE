@@ -6,7 +6,7 @@ const PremiumBanner = () => {
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <Ionicons name="diamond-outline" size={28} color="#8A2BE2" />
+        <Ionicons name="diamond-outline" size={28} color="#FFCC00" />
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.title}>프리미엄 플랜으로 업그레이드</Text>
@@ -21,7 +21,7 @@ const PremiumBanner = () => {
         }}
       >
         <Text style={styles.buttonText}>자세히 보기</Text>
-        <Ionicons name="arrow-forward" size={16} color="white" />
+        <Ionicons name="arrow-forward" size={16} color="#000000" />
       </TouchableOpacity>
     </View>
   );
@@ -65,13 +65,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#8A2BE2",
+    backgroundColor: "#FFCC00",
     borderRadius: 8,
     paddingVertical: 12,
     gap: 8,
   },
   buttonText: {
-    color: "white",
+    color: "#000000",
     fontSize: 16,
     fontWeight: "600",
   },

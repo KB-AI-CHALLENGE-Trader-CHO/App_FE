@@ -160,8 +160,12 @@ const AiReportScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* 헤더 */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>AI 분석 리포트</Text>
+      </View>
+
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <Text style={styles.screenTitle}>📊 AI 분석 리포트</Text>
         {isPremium ? renderPremiumContent() : renderFreeContent()}
       </ScrollView>
     </SafeAreaView>
@@ -172,6 +176,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8F9FA",
+  },
+  header: {
+    backgroundColor: "#FFCC00",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#645B4C",
   },
   contentContainer: {
     padding: 20,
@@ -186,12 +201,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: "#555",
-  },
-  screenTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 20,
   },
   tabContainer: {
     flexDirection: "row",
@@ -221,7 +230,7 @@ const styles = StyleSheet.create({
     color: "#495057",
   },
   activeTabText: {
-    color: "#0D6EFD",
+    color: "#FFCC00",
   },
 });
 

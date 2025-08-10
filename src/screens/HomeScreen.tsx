@@ -161,6 +161,11 @@ const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      {/* 헤더 */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>매매일지</Text>
+      </View>
+
       {/* 달력 */}
       <Calendar
         current={selectedDate}
@@ -178,7 +183,7 @@ const HomeScreen: React.FC = () => {
           selectedDayBackgroundColor: "#FFCC00",
           selectedDayTextColor: "#645B4C",
           todayTextColor: "#FFCC00",
-          dayTextColor: "#645B4C",
+          dayTextColor: "#000000",
           textDisabledColor: "#ccc",
           dotColor: "#FFCC00",
           arrowColor: "#645B4C",
@@ -232,6 +237,17 @@ const HomeScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  header: {
+    backgroundColor: "#FFCC00",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#645B4C",
+  },
   itemBox: {
     padding: 14,
     borderBottomWidth: 1,

@@ -16,8 +16,11 @@ const App = () => {
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: "#3067D9",
-          tabBarInactiveTintColor: "gray",
+          tabBarActiveTintColor: "#FFCC00",
+          tabBarInactiveTintColor: "#FFFFFF",
+          tabBarStyle: {
+            backgroundColor: "#645B4C",
+          },
         }}
       >
         <Tab.Screen

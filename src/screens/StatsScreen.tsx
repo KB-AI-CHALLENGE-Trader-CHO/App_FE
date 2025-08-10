@@ -137,12 +137,13 @@ const StatsScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* 헤더 */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>요약 통계</Text>
+      </View>
+
       <ScrollView contentContainerStyle={styles.container}>
         {/* === Top Section Start === */}
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerTitle}>요약 통계</Text>
-        </View>
-
         <PeriodSelector
           selectedRange={rangeType}
           onSelect={handleRangeChange}
@@ -214,17 +215,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F9FAFB",
   },
+  header: {
+    backgroundColor: "#FFCC00",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#645B4C",
+  },
   container: {
     paddingHorizontal: 16,
     paddingBottom: 40,
-  },
-  headerContainer: {
-    alignItems: "center",
-    marginVertical: 16,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
   },
   periodSelectionContainer: {
     width: "100%",
@@ -248,25 +252,26 @@ const styles = StyleSheet.create({
   selectorContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 16,
+    marginBottom: 24,
+    marginTop: 16,
   },
   selectorButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 20,
-    marginHorizontal: 8,
-    backgroundColor: "#E5E7EB",
+    marginHorizontal: 12,
+    backgroundColor: "#F0F0F0",
   },
   selectorButtonActive: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#645B4C",
   },
   selectorText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
-    color: "#4B5563",
+    color: "#645B4C",
   },
   selectorTextActive: {
-    color: "white",
+    color: "#FFFFFF",
   },
   statsCardContainer: {
     flexDirection: "row",

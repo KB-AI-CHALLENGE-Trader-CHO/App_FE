@@ -35,7 +35,6 @@
 
 ```bash
 git clone https://github.com/your-username/AinvestLog.git
-cd AinvestLog/AinvestLog
 ```
 
 ### 2. 의존성 설치

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../utils/api";
 import {
   View,
   Text,
@@ -11,7 +12,7 @@ import {
 } from "react-native";
 
 // Mock Data
-import weeklyReportData from "../data/mockWeeklyReport.json";
+// import weeklyReportData from "../data/mockWeeklyReport.json";
 import monthlyReportData from "../data/mockMonthlyReport.json";
 import dailyReportsData from "../data/mockDailyReports.json";
 
@@ -25,7 +26,7 @@ type ReportType = "daily" | "weekly" | "monthly";
 // A type guard to check if an item is a full report
 const isReportData = (item: any): item is ReportData => {
   return item && typeof item.summary === "string";
-};
+}
 
 const AiReportScreen = () => {
   // Hardcoded premium status
@@ -40,25 +41,69 @@ const AiReportScreen = () => {
   const [dailyReports, setDailyReports] = useState<ReportData[]>([]);
 
   useEffect(() => {
-    // Simulate API fetch
-    setTimeout(() => {
-      // Type assertion to ensure mock data matches the expected type
-      setWeeklyReport({
-        ...(weeklyReportData as Omit<ReportData, "id">),
-        id: "weekly-report",
-      });
-      setMonthlyReport({
-        ...(monthlyReportData as Omit<ReportData, "id">),
-        id: "monthly-report",
-      });
-      const dailyData = dailyReportsData.map((r) => ({
-        ...r,
-        analysis: r.analysis as AnalysisItem[],
-      }));
-      setDailyReports(dailyData as ReportData[]);
+    // Fetch weekly report from API
+  const fetchWeeklyReport = async (): Promise<void> => {
+      try {
+  const response = await api.get('/reports/weekly');
+        setWeeklyReport({
+          ...(response.data as Omit<ReportData, "id">),
+          id: "weekly-report",
+        });
+      } catch (error) {
+        console.error('Error fetching weekly report:', error);
+      }
+    };
 
-      setLoading(false);
-    }, 1000);
+    // Keep monthly and daily as mock for now
+    setMonthlyReport({
+      ...monthlyReportData,
+      id: "monthly-report",
+      analysis: monthlyReportData.analysis.map((item: any, idx: number) => {
+        let date = '';
+        let time = '';
+        if (item.dateTime) {
+          const [d, t] = item.dateTime.split(' ');
+          date = d || '';
+          time = t || '';
+        }
+        return {
+          id: item.id || `monthly-analysis-${idx}`,
+          date,
+          time,
+          stockName: item.stockName,
+          tradeType: item.transactionType === '매수' ? '매수' : '매도',
+          memo: item.memo || '',
+          analysisDetails: Array.isArray(item.analysisDetails) ? item.analysisDetails.join('\n') : item.analysisDetails,
+          suggestion: item.suggestion,
+        };
+      }),
+    });
+    const dailyData = dailyReportsData.map((r: any) => ({
+      ...r,
+      analysis: r.analysis.map((item: any, idx: number) => {
+        let date = '';
+        let time = '';
+        if (item.dateTime) {
+          const [d, t] = item.dateTime.split(' ');
+          date = d || '';
+          time = t || '';
+        }
+        return {
+          id: item.id || `${r.id}-analysis-${idx}`,
+          date,
+          time,
+          stockName: item.stockName,
+          tradeType: item.transactionType === '매수' ? '매수' : '매도',
+          memo: item.memo || '',
+          analysisDetails: Array.isArray(item.analysisDetails) ? item.analysisDetails.join('\n') : item.analysisDetails,
+          suggestion: item.suggestion,
+        };
+      }),
+    }));
+    setDailyReports(dailyData);
+
+    fetchWeeklyReport();
+    setLoading(false);
   }, []);
 
   const renderPremiumContent = () => {
@@ -81,7 +126,7 @@ const AiReportScreen = () => {
             renderItem={({ item }) => (
               <AiReportCard report={item} title={item.period} />
             )}
-            keyExtractor={(item) => item.id}
+            keyExtractor={item => item.id}
             nestedScrollEnabled
           />
         );
@@ -156,20 +201,20 @@ const AiReportScreen = () => {
         <Text style={styles.loadingText}>AI 리포트를 생성하는 중...</Text>
       </SafeAreaView>
     );
+  } else {
+    return (
+      <SafeAreaView style={styles.container}>
+        {/* 헤더 */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>AI 분석 리포트</Text>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.contentContainer}>
+          {isPremium ? renderPremiumContent() : renderFreeContent()}
+        </ScrollView>
+      </SafeAreaView>
+    );
   }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>AI 분석 리포트</Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        {isPremium ? renderPremiumContent() : renderFreeContent()}
-      </ScrollView>
-    </SafeAreaView>
-  );
 };
 
 const styles = StyleSheet.create({

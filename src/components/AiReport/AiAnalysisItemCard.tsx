@@ -4,11 +4,12 @@ import { Ionicons } from "@expo/vector-icons";
 
 export interface AnalysisItem {
   id: string;
-  dateTime: string;
+  date: string;
+  time: string;
   stockName: string;
-  transactionType: "매수" | "매도";
+  tradeType: string;
   memo: string;
-  analysisDetails: string[];
+  analysisDetails: string;
   suggestion: string;
 }
 
@@ -17,16 +18,18 @@ interface Props {
 }
 
 const AiAnalysisItemCard: React.FC<Props> = ({ item }) => {
-  const isBuy = item.transactionType === "매수";
+
+  const tradeTypeKor = item.tradeType === 'BUY' ? '매수' : item.tradeType === 'SELL' ? '매도' : item.tradeType;
+  const isBuy = tradeTypeKor === "매수";
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.dateTimeText}>🗓️ {item.dateTime}</Text>
+        <Text style={styles.dateTimeText}>🗓️ {item.date} {item.time}</Text>
         <Text
           style={[styles.stockText, isBuy ? styles.buyText : styles.sellText]}
         >
-          {item.stockName} {item.transactionType}
+          {item.stockName} {tradeTypeKor}
         </Text>
       </View>
 
@@ -39,11 +42,10 @@ const AiAnalysisItemCard: React.FC<Props> = ({ item }) => {
 
         <View style={styles.analysisSection}>
           <Text style={styles.label}>💡 분석 결과:</Text>
-          {item.analysisDetails.map((detail, index) => (
-            <Text key={index} style={styles.detailText}>
-              - {detail}
-            </Text>
-          ))}
+          <Text style={styles.detailText}>
+            - {item.analysisDetails}
+          </Text>
+
         </View>
 
         <View style={styles.suggestionSection}>

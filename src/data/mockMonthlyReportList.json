@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "data": [
+    { "year": 2025, "month": 6, "label": "2025년 6월" },
+    { "year": 2025, "month": 7, "label": "2025년 7월" },
+    { "year": 2025, "month": 8, "label": "2025년 8월" },
+    { "year": 2025, "month": 9, "label": "2025년 9월" }
+  ]
+}

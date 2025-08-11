@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, FlatList } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export interface AnalysisItem {
@@ -9,8 +9,9 @@ export interface AnalysisItem {
   stockName: string;
   tradeType: string;
   memo: string;
-  analysisDetails: string;
+  analysisDetails: string | string[];
   suggestion: string;
+  symbol?: string;
 }
 
 interface Props {
@@ -18,18 +19,29 @@ interface Props {
 }
 
 const AiAnalysisItemCard: React.FC<Props> = ({ item }) => {
-
-  const tradeTypeKor = item.tradeType === 'BUY' ? '매수' : item.tradeType === 'SELL' ? '매도' : item.tradeType;
+  const tradeTypeKor =
+    item.tradeType === "BUY"
+      ? "매수"
+      : item.tradeType === "SELL"
+      ? "매도"
+      : item.tradeType;
   const isBuy = tradeTypeKor === "매수";
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.dateTimeText}>🗓️ {item.date} {item.time}</Text>
+        {item.date ? (
+          <Text style={styles.dateTimeText}>
+            🗓️ {item.date} {item.time}
+          </Text>
+        ) : (
+          <View />
+        )}
         <Text
           style={[styles.stockText, isBuy ? styles.buyText : styles.sellText]}
         >
-          {item.stockName} {tradeTypeKor}
+          {item.stockName}
+          {item.symbol ? ` (${item.symbol})` : ""} {tradeTypeKor}
         </Text>
       </View>
 
@@ -42,10 +54,17 @@ const AiAnalysisItemCard: React.FC<Props> = ({ item }) => {
 
         <View style={styles.analysisSection}>
           <Text style={styles.label}>💡 분석 결과:</Text>
-          <Text style={styles.detailText}>
-            - {item.analysisDetails}
-          </Text>
-
+          {Array.isArray(item.analysisDetails) ? (
+            <FlatList
+              data={item.analysisDetails}
+              keyExtractor={(v, i) => `${i}-${String(v).slice(0, 10)}`}
+              renderItem={({ item: line }) => (
+                <Text style={styles.detailText}>• {line}</Text>
+              )}
+            />
+          ) : (
+            <Text style={styles.detailText}>- {item.analysisDetails}</Text>
+          )}
         </View>
 
         <View style={styles.suggestionSection}>

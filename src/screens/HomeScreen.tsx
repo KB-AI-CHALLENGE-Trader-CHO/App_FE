@@ -145,10 +145,12 @@ const HomeScreen: React.FC = () => {
         </View>
         <Text style={styles.itemDetail}>거래 시간: {item.time}</Text>
         <Text style={styles.itemDetail}>
-          수량: {qty} / 단가: {nfmt(price)}원
+          수량: {qty} / 단가: ${nfmt(price)}
         </Text>
         {item.type === "SELL" && avg !== null && (
-          <Text style={styles.itemDetail}>매수평단가: {nfmt(avg)}원</Text>
+          <Text style={styles.itemDetail}>
+            매수평단가: <Text style={{ fontWeight: "bold" }}>$</Text>{nfmt(avg)}
+          </Text>
         )}
         {item.memo ? <Text style={styles.itemMemo}>메모: {item.memo}</Text> : null}
       </TouchableOpacity>

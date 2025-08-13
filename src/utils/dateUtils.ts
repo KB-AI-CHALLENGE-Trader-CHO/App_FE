@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import "./dayjsConfig"; // Ensure plugins are loaded
-import { Transaction } from "../models/Transaction";
+import { Trade } from "../types/trade";
 
 // NOTE: dayjs.extend calls are in dayjsConfig.ts
 // We import the types here to make TypeScript aware of the extended methods.

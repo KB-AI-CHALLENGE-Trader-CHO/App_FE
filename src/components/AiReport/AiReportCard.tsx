@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import AiAnalysisItemCard, { AnalysisItem } from "./AiAnalysisItemCard";
+import AiAnalysisItemCard from "./AiAnalysisItemCard";
+import { AnalysisItem } from "../../types/analysis";
 
 export interface ReportData {
   id: string;
@@ -15,6 +16,13 @@ interface Props {
 }
 
 const AiReportCard: React.FC<Props> = ({ report, title }) => {
+  // 날짜, 시간 오름차순 정렬
+  const sortedAnalysis = [...report.analysis].sort((a, b) => {
+    const dateA = new Date(`${a.date} ${a.time}`);
+    const dateB = new Date(`${b.date} ${b.time}`);
+    return dateA.getTime() - dateB.getTime();
+  });
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
@@ -23,11 +31,11 @@ const AiReportCard: React.FC<Props> = ({ report, title }) => {
         <Text style={styles.summaryText}>{report.summary}</Text>
       </View>
 
-      {report.analysis.length > 0 && (
+      {sortedAnalysis.length > 0 && (
         <Text style={styles.listTitle}>상세 분석</Text>
       )}
 
-      {report.analysis.map((item) => (
+      {sortedAnalysis.map((item) => (
         <AiAnalysisItemCard key={item.id} item={item} />
       ))}
     </View>

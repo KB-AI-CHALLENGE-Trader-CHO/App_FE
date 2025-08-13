@@ -8,34 +8,28 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-export type ReportMode = "weekly" | "monthly";
-
-export interface PeriodOption {
-  key: string; // index string
-  label: string; // e.g., "2025년 8월 4주차" or "2025년 8월"
-}
+import { PeriodOption, ReportMode } from "../../types/report";
 
 interface PeriodNavigatorProps {
   mode: ReportMode;
   options: PeriodOption[];
-  currentKey: string;
-  onChange: (key: string) => void;
+  currentId: number;
+  onChange: (id: number) => void;
   onOpen?: () => void | Promise<void>;
 }
 
 const PeriodNavigator: React.FC<PeriodNavigatorProps> = ({
   mode,
   options,
-  currentKey,
+  currentId,
   onChange,
   onOpen,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const currentIndex = useMemo(
-    () => options.findIndex((o) => o.key === currentKey),
-    [options, currentKey]
+    () => options.findIndex((o) => o.id === currentId),
+    [options, currentId]
   );
   const canGoPrev = currentIndex > 0;
   const canGoNext = currentIndex >= 0 && currentIndex < options.length - 1;
@@ -43,12 +37,12 @@ const PeriodNavigator: React.FC<PeriodNavigatorProps> = ({
 
   const handlePrev = () => {
     if (!canGoPrev) return;
-    onChange(options[currentIndex - 1].key);
+    onChange(options[currentIndex - 1].id);
   };
 
   const handleNext = () => {
     if (!canGoNext) return;
-    onChange(options[currentIndex + 1].key);
+    onChange(options[currentIndex + 1].id);
   };
 
   return (
@@ -101,15 +95,15 @@ const PeriodNavigator: React.FC<PeriodNavigatorProps> = ({
             </Text>
             <FlatList
               data={options}
-              keyExtractor={(item) => item.key}
+              keyExtractor={(item) => String(item.id)}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[
                     styles.optionRow,
-                    item.key === currentKey && styles.optionRowActive,
+                    item.id === currentId && styles.optionRowActive,
                   ]}
                   onPress={() => {
-                    onChange(item.key);
+                    onChange(item.id);
                     setIsOpen(false);
                   }}
                 >
@@ -149,9 +143,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
-  disabled: {
-    backgroundColor: "#F5F5F5",
-  },
+  disabled: { backgroundColor: "#F5F5F5" },
   center: { flex: 1, alignItems: "center" },
   centerText: { fontSize: 16, fontWeight: "700" },
   modalBackdrop: {

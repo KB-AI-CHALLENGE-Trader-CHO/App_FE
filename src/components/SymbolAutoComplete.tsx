@@ -1,36 +1,32 @@
-import React, { useState, useEffect } from "react";
+// src/components/SymbolAutoComplete.tsx
+import React, { useEffect, useState } from "react";
 import {
   View,
   TextInput,
-  FlatList,
   ScrollView,
   Text,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { useSymbolSearch, StockSymbol } from "../hooks/useSymbolSearch";
+import { StockItem } from "../types/trade";
+import { useServerSymbolSearch } from "../hooks/useSymbolSearch";
 
 interface Props {
-  onSelect: (stock: StockSymbol) => void;
+  onSelect: (stock: StockItem) => void; // 서버 종목 그대로 반환 (id, name, symbol)
   initialValue?: string;
 }
 
-const SymbolAutoComplete: React.FC<Props> = ({
-  onSelect,
-  initialValue = "",
-}) => {
-  const { query, setQuery, filteredList, setFilteredList } =
-    useSymbolSearch(initialValue);
+const SymbolAutoComplete: React.FC<Props> = ({ onSelect, initialValue = "" }) => {
+  const { query, setQuery, filteredList } = useServerSymbolSearch(initialValue);
   const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     setQuery(initialValue);
   }, [initialValue]);
 
-  const handleSelect = (stock: StockSymbol) => {
+  const handleSelect = (stock: StockItem) => {
     setQuery(stock.name);
     onSelect(stock);
-    setFilteredList([]); // 목록 숨기기
     setIsFocused(false);
   };
 
@@ -45,13 +41,10 @@ const SymbolAutoComplete: React.FC<Props> = ({
       />
       {isFocused && filteredList.length > 0 && (
         <View style={styles.listContainer}>
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            style={{ maxHeight: 200 }}
-          >
+          <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 200 }}>
             {filteredList.map((item) => (
               <TouchableOpacity
-                key={item.symbol}
+                key={`${item.id}-${item.symbol}`}
                 onPress={() => handleSelect(item)}
                 style={styles.item}
               >
@@ -70,7 +63,7 @@ const SymbolAutoComplete: React.FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     position: "relative",
-    zIndex: 1, // 다른 요소 위에 표시되도록
+    zIndex: 1,
   },
   input: {
     borderBottomWidth: 1,
@@ -79,14 +72,14 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     position: "absolute",
-    top: 38, // 입력창 바로 아래
+    top: 38,
     left: 0,
     right: 0,
     backgroundColor: "white",
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 4,
-    maxHeight: 200, // 최대 높이 지정
+    maxHeight: 200,
   },
   item: {
     padding: 10,

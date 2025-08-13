@@ -8,14 +8,9 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Calendar, DateData } from "react-native-calendars";
-import TransactionModal from "../components/TransactionModal";
-import { Transaction } from "../models/Transaction";
-import {
-  getTransactions,
-  addTransaction,
-  updateTransaction,
-  deleteTransaction,
-} from "../storage/transactionStorage";
+import TradeModal from "../modals/TradeModal";
+import { Trade, TradeRequest } from "../types/trade";
+import api from "../utils/api";
 
 type MarkedDates = {
   [date: string]: {
@@ -27,85 +22,86 @@ type MarkedDates = {
   };
 };
 
-type TransactionsData = Record<string, Transaction[]>;
+type TradesData = Record<string, Trade[]>;
 
 const getToday = () => new Date().toISOString().split("T")[0];
 
+// 서버에서 거래 목록 조회 (ResponseDto { data } 가정)
+async function getTrades(): Promise<TradesData> {
+  const res = await api.get("/trades");
+  const body = (res?.data?.data ?? res?.data) as TradesData;
+  return body ?? {};
+}
+
+const nfmt = (n: number | null | undefined) => (n ?? 0).toLocaleString();
+
 const HomeScreen: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(getToday());
-  const [allTransactions, setAllTransactions] = useState<TransactionsData>({});
+  const [allTrades, setAllTrades] = useState<TradesData>({});
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingTransaction, setEditingTransaction] =
-    useState<Transaction | null>(null);
+  const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [currentMonth, setCurrentMonth] = useState(selectedDate.slice(0, 7));
 
   useEffect(() => {
-    const loadData = async () => {
-      const data = await getTransactions();
-      setAllTransactions(data);
-    };
-    loadData();
+    (async () => {
+      const data = await getTrades();
+      setAllTrades(data);
+    })();
   }, []);
 
   const openCreateModal = () => {
-    setEditingTransaction(null);
+    setEditingTrade(null);
     setIsModalVisible(true);
   };
 
-  const openEditModal = (tx: Transaction) => {
-    setEditingTransaction(tx);
+  const openEditModal = (tx: Trade) => {
+    setEditingTrade(tx);
     setIsModalVisible(true);
   };
 
   const closeModal = () => {
     setIsModalVisible(false);
-    setEditingTransaction(null);
+    setEditingTrade(null);
   };
 
   const handleDayPress = (day: DateData) => {
     setSelectedDate(day.dateString);
   };
 
-  const handleAddOrUpdateTransaction = useCallback(
-    async (tx: Omit<Transaction, "id"> | Transaction) => {
-      if ("id" in tx) {
-        // Update
-        await updateTransaction(tx);
-        setAllTransactions((prev) => {
-          const updatedTxs = (prev[tx.date] || []).map((t) =>
-            t.id === tx.id ? tx : t
-          );
-          return { ...prev, [tx.date]: updatedTxs };
-        });
+  // 생성/수정 처리
+  const handleAddOrUpdateTrade = useCallback(
+    async (
+      payload:
+        | { mode: "create"; request: TradeRequest; display: { name: string; symbol: string } }
+        | { mode: "edit"; trade: Trade }
+    ) => {
+      if (payload.mode === "create") {
+        await api.post("/trades", payload.request);
+        const refreshed = await getTrades();
+        setAllTrades(refreshed);
       } else {
-        // Create
-        const newTransaction = await addTransaction(tx);
-        setAllTransactions((prev) => ({
-          ...prev,
-          [newTransaction.date]: [
-            ...(prev[newTransaction.date] || []),
-            newTransaction,
-          ],
-        }));
+        const tx = payload.trade;
+        // 백엔드 update 미구현 → 로컬 갱신
+        setAllTrades((prev) => {
+          const list = prev[tx.date] ?? [];
+          const next = list.map((t) => (t.id === tx.id ? tx : t));
+          return { ...prev, [tx.date]: next };
+        });
       }
     },
     []
   );
 
-  const handleDeleteTransaction = useCallback(
-    async (txId: string, txDate: string) => {
-      await deleteTransaction(txId, txDate);
-      setAllTransactions((prev) => {
-        const newAllTransactions = { ...prev };
-        const updatedDateTxs = newAllTransactions[txDate].filter(
-          (t) => t.id !== txId
-        );
-        if (updatedDateTxs.length > 0) {
-          newAllTransactions[txDate] = updatedDateTxs;
-        } else {
-          delete newAllTransactions[txDate];
-        }
-        return newAllTransactions;
+  const handleDeleteTrade = useCallback(
+    async (txId: number, txDate: string) => {
+      // 백엔드 delete 미구현 → 로컬 삭제
+      setAllTrades((prev) => {
+        const list = prev[txDate] ?? [];
+        const next = list.filter((t) => t.id !== txId);
+        const copy = { ...prev };
+        if (next.length > 0) copy[txDate] = next;
+        else delete copy[txDate];
+        return copy;
       });
     },
     []
@@ -113,8 +109,8 @@ const HomeScreen: React.FC = () => {
 
   const markedDates = useMemo((): MarkedDates => {
     const marked: MarkedDates = {};
-    for (const date in allTransactions) {
-      if (allTransactions[date].length > 0) {
+    for (const date in allTrades) {
+      if ((allTrades[date]?.length ?? 0) > 0) {
         marked[date] = { marked: true, dotColor: "#FFCC00" };
       }
     }
@@ -125,39 +121,39 @@ const HomeScreen: React.FC = () => {
       selectedTextColor: "#645B4C",
     };
     return marked;
-  }, [allTransactions, selectedDate]);
+  }, [allTrades, selectedDate]);
 
-  const selectedDateTransactions = useMemo(() => {
-    return allTransactions[selectedDate] || [];
-  }, [allTransactions, selectedDate]);
+  const selectedDateTrades = useMemo(() => {
+    return allTrades[selectedDate] ?? [];
+  }, [allTrades, selectedDate]);
 
-  const renderItem = ({ item }: { item: Transaction }) => (
-    <TouchableOpacity
-      onPress={() => openEditModal(item)}
-      style={styles.itemBox}
-    >
-      <View style={styles.itemHeader}>
-        <Text style={styles.itemTitle}>
-          {item.name} ({item.symbol})
-        </Text>
-        <Text style={item.type === "buy" ? styles.buyText : styles.sellText}>
-          {item.type === "buy" ? "매수" : "매도"}
-        </Text>
-      </View>
-      <Text style={styles.itemDetail}>거래 시간: {item.time}</Text>
-      <Text style={styles.itemDetail}>
-        수량: {item.quantity} / 단가: {item.price.toLocaleString()}원
-      </Text>
-      {item.type === "sell" && item.avgBuyPrice && (
+  const renderItem = ({ item }: { item: Trade }) => {
+    const isBuy = item.type === "BUY";
+    const qty = item.quantity ?? 0;
+    const price = item.price ?? 0;
+    const avg = item.avgBuyPrice ?? null;
+
+    return (
+      <TouchableOpacity onPress={() => openEditModal(item)} style={styles.itemBox}>
+        <View style={styles.itemHeader}>
+          <Text style={styles.itemTitle}>
+            {item.name} ({item.symbol})
+          </Text>
+          <Text style={isBuy ? styles.buyText : styles.sellText}>
+            {isBuy ? "매수" : "매도"}
+          </Text>
+        </View>
+        <Text style={styles.itemDetail}>거래 시간: {item.time}</Text>
         <Text style={styles.itemDetail}>
-          매수평단가: {item.avgBuyPrice.toLocaleString()}원
+          수량: {qty} / 단가: {nfmt(price)}원
         </Text>
-      )}
-      {item.memo ? (
-        <Text style={styles.itemMemo}>메모: {item.memo}</Text>
-      ) : null}
-    </TouchableOpacity>
-  );
+        {item.type === "SELL" && avg !== null && (
+          <Text style={styles.itemDetail}>매수평단가: {nfmt(avg)}원</Text>
+        )}
+        {item.memo ? <Text style={styles.itemMemo}>메모: {item.memo}</Text> : null}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -171,9 +167,7 @@ const HomeScreen: React.FC = () => {
         current={selectedDate}
         onDayPress={handleDayPress}
         onMonthChange={(month) => {
-          setCurrentMonth(
-            `${month.year}-${String(month.month).padStart(2, "0")}`
-          );
+          setCurrentMonth(`${month.year}-${String(month.month).padStart(2, "0")}`);
         }}
         markedDates={markedDates}
         monthFormat={"yyyy년 M월"}
@@ -205,6 +199,7 @@ const HomeScreen: React.FC = () => {
           shadowRadius: 4,
         }}
       />
+
       {/* 매매일지 추가 버튼 */}
       <View style={styles.addButtonContainer}>
         <TouchableOpacity style={styles.addButton} onPress={openCreateModal}>
@@ -214,22 +209,21 @@ const HomeScreen: React.FC = () => {
 
       <View style={{ flex: 1 }}>
         <FlatList
-          data={selectedDateTransactions}
-          keyExtractor={(item) => item.id}
+          data={selectedDateTrades}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>거래 내역이 없습니다.</Text>
-          }
+          ListEmptyComponent={<Text style={styles.emptyText}>거래 내역이 없습니다.</Text>}
           contentContainerStyle={{ flexGrow: 1, padding: 16, paddingTop: 0 }}
         />
       </View>
-      <TransactionModal
+
+      <TradeModal
         visible={isModalVisible}
         onClose={closeModal}
-        onSubmit={handleAddOrUpdateTransaction}
-        onDelete={handleDeleteTransaction}
-        mode={editingTransaction ? "edit" : "create"}
-        initialData={editingTransaction || undefined}
+        onSubmit={handleAddOrUpdateTrade}
+        onDelete={handleDeleteTrade}
+        mode={editingTrade ? "edit" : "create"}
+        initialData={editingTrade ?? undefined}
         date={selectedDate}
       />
     </SafeAreaView>
@@ -265,14 +259,8 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: "#645B4C",
   },
-  buyText: {
-    color: "#e53935",
-    fontWeight: "bold",
-  },
-  sellText: {
-    color: "#1e88e5",
-    fontWeight: "bold",
-  },
+  buyText: { color: "#1e88e5", fontWeight: "bold" },
+  sellText: { color: "#e53935", fontWeight: "bold" },
   itemDetail: {
     fontSize: 14,
     color: "#645B4C",

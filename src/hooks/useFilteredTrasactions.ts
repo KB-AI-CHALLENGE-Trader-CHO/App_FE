@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import dayjs from "dayjs";
-import { Transaction } from "../models/Transaction";
+import { Transaction } from "../models/transactionDemo";
 import {
   DateRangeType,
   SelectedPeriod,

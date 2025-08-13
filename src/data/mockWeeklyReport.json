@@ -7,7 +7,7 @@
       "dateTime": "2025/06/22 10:30",
       "stockName": "카카오",
       "symbol": "035720",
-      "transactionType": "매수",
+      "TradeType": "매수",
       "memo": "AI 컨퍼런스 관련 기사 보고 진입",
       "analysisDetails": [
         "RSI 지표 74.2: 과매수 상태로 단기 조정 가능성이 있습니다.",
@@ -20,7 +20,7 @@
       "dateTime": "2025/06/20 09:45",
       "stockName": "삼성전자",
       "symbol": "005930",
-      "transactionType": "매도",
+      "TradeType": "매도",
       "memo": "수익 실현",
       "analysisDetails": [
         "수익률: +12.5%",

@@ -5,7 +5,7 @@
     {
       "id": "monthly-analysis-1",
       "stockName": "포트폴리오 비중 분석",
-      "transactionType": "매수",
+      "TradeType": "매수",
       "analysisDetails": [
         "반도체 섹터 비중: 45% (수익 기여도 1위)",
         "AI/소프트웨어 비중: 25% (월 후반 비중 확대)",
@@ -17,7 +17,7 @@
     {
       "id": "monthly-analysis-2",
       "stockName": "매매 패턴 분석",
-      "transactionType": "매도",
+      "TradeType": "매도",
       "analysisDetails": [
         "월초 고점 추격 매수 2건 발생 (평균 -8% 손실 기록)",
         "월 중반 눌림목 매수 5건 발생 (평균 +12% 수익 기록)",

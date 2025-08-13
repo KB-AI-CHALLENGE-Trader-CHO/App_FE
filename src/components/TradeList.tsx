@@ -6,28 +6,29 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import { Transaction } from "../models/Transaction";
+import { Trade } from "../types/trade";
 
 interface Props {
-  transactions: Transaction[];
-  onTransactionPress: (transaction: Transaction) => void;
+  Trades: Trade[];
+  onTradePress: (trade: Trade) => void;
 }
 
-const TransactionList: React.FC<Props> = ({
-  transactions,
-  onTransactionPress,
-}) => {
-  const renderItem = ({ item }: { item: Transaction }) => {
-    const isBuy = item.type === "buy";
-    const profitLoss =
-      item.type === "sell" && item.avgBuyPrice
-        ? (item.price - item.avgBuyPrice) * item.quantity
-        : null;
+const TradeList: React.FC<Props> = ({ Trades, onTradePress }) => {
+  const renderItem = ({ item }: { item: Trade }) => {
+    const isBuy = item.type === "BUY";
+    const qty = item.quantity ?? 0;
+    const price = item.price ?? 0;
+
+    // 실현손익: SELL일 때만 계산, avgBuyPrice가 null이 아닐 때만
+    let profitLoss: number | null = null;
+    if (item.type === "SELL" && item.avgBuyPrice != null) {
+      profitLoss = (price - item.avgBuyPrice) * qty;
+    }
 
     return (
       <TouchableOpacity
         style={styles.itemContainer}
-        onPress={() => onTransactionPress(item)}
+        onPress={() => onTradePress(item)}
       >
         <View style={styles.itemHeader}>
           <Text style={styles.itemName}>{item.name}</Text>
@@ -35,9 +36,10 @@ const TransactionList: React.FC<Props> = ({
             {isBuy ? "매수" : "매도"}
           </Text>
         </View>
+
         <View style={styles.itemBody}>
           <Text style={styles.itemDetails}>
-            {item.quantity}주 @ {item.price.toLocaleString()}원
+            {qty}주 @ {price.toLocaleString()}원
           </Text>
           {profitLoss !== null && (
             <Text style={profitLoss >= 0 ? styles.profitText : styles.lossText}>
@@ -45,15 +47,16 @@ const TransactionList: React.FC<Props> = ({
             </Text>
           )}
         </View>
+
         <View style={styles.itemFooter}>
-          <Text style={styles.timeText}>🕒 {item.time}</Text>
-          {item.memo && <Text style={styles.memoText}>📝 {item.memo}</Text>}
+          <Text style={styles.timeText}>{item.time}</Text>
+          {item.memo && <Text style={styles.memoText}>{item.memo}</Text>}
         </View>
       </TouchableOpacity>
     );
   };
 
-  if (transactions.length === 0) {
+  if (!Trades || Trades.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>거래 내역이 없습니다.</Text>
@@ -63,9 +66,9 @@ const TransactionList: React.FC<Props> = ({
 
   return (
     <FlatList
-      data={transactions}
+      data={Trades}
       renderItem={renderItem}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item) => item.id.toString()}
       contentContainerStyle={styles.listContainer}
     />
   );
@@ -97,11 +100,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   buyText: {
-    color: "#D94A4A",
+    color: "#3067D9",
     fontWeight: "bold",
   },
   sellText: {
-    color: "#3067D9",
+    color: "#D94A4A",
     fontWeight: "bold",
   },
   itemBody: {
@@ -152,4 +155,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TransactionList;
+export default TradeList;

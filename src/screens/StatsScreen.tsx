@@ -11,9 +11,9 @@ import { useFocusEffect } from "@react-navigation/native";
 import dayjs from "dayjs";
 import { Ionicons } from "@expo/vector-icons";
 
-import { Transaction } from "../models/Transaction";
-import { getTransactions } from "../storage/transactionStorage";
-import { useFilteredTransactions } from "../hooks/useFilteredTransactions";
+import { Transaction } from "../models/transactionDemo";
+import { getTrades } from "../storage/tradeStorage";
+import { useFilteredTransactions } from "../hooks/useFilteredTrasactions";
 import StatsCard from "../components/Stats/StatsCard";
 import { useStatsSummary } from "../hooks/useStatsSummary";
 import PeriodSelectorModal from "../components/Stats/PeriodSelectorModal";
@@ -80,8 +80,8 @@ const StatsScreen = () => {
   useFocusEffect(
     React.useCallback(() => {
       const loadData = async () => {
-        const data = await getTransactions();
-        setAllTransactions(data);
+  const data = await getTrades();
+  setAllTransactions(data);
       };
       loadData();
     }, [])

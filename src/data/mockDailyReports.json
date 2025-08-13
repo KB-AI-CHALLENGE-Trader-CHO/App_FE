@@ -8,7 +8,7 @@
         "id": "daily-analysis-1-1",
         "dateTime": "10:30",
         "stockName": "카카오",
-        "transactionType": "매수",
+        "TradeType": "매수",
         "memo": "AI 컨퍼런스 관련 기사 보고 진입",
         "analysisDetails": ["RSI 지표 74.2: 과매수 상태", "거래량 150% 증가"],
         "suggestion": "단기 조정 가능성에 유의하세요."
@@ -30,7 +30,7 @@
         "id": "daily-analysis-3-1",
         "dateTime": "09:45",
         "stockName": "삼성전자",
-        "transactionType": "매도",
+        "TradeType": "매도",
         "memo": "수익 실현",
         "analysisDetails": ["수익률: +12.5%", "5일선 지지 확인 후 매도"],
         "suggestion": "훌륭한 매도 타이밍이었습니다."

@@ -82,7 +82,7 @@ npx expo start --web
 AinvestLog/
 ├── src/
 │   ├── components/          # 재사용 가능한 UI 컴포넌트
-│   │   ├── TransactionModal.tsx
+│   │   ├── TradeModal.tsx
 │   │   ├── SymbolAutoComplete.tsx
 │   │   └── ...
 │   ├── screens/            # 화면 컴포넌트
@@ -90,7 +90,7 @@ AinvestLog/
 │   │   ├── AiReportScreen.tsx
 │   │   └── StatsScreen.tsx
 │   ├── models/             # 데이터 타입 정의
-│   │   └── Transaction.ts
+│   │   └── Trade.ts
 │   ├── hooks/              # 커스텀 훅
 │   ├── utils/              # 유틸리티 함수
 │   ├── constants/          # 상수 정의
@@ -122,7 +122,7 @@ AinvestLog/
 - 선택된 날짜의 거래 내역
 - 매매일지 추가 버튼
 
-### 2. 거래 입력 모달 (TransactionModal)
+### 2. 거래 입력 모달 (TradeModal)
 
 - 종목명 자동완성
 - 매수/매도 유형 선택

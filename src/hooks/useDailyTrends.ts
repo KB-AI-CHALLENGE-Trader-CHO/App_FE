@@ -1,19 +1,19 @@
 import { useMemo } from "react";
 import dayjs from "dayjs";
-import { Transaction } from "../models/Transaction";
+import { Transaction } from "../models/transactionDemo"; // Assuming Transaction is defined in models/TransactionDemo
 
 export interface DailyTrend {
   date: string; // "M/D" 형식
   count: number;
 }
 
-export const useDailyTrends = (transactions: Transaction[]): DailyTrend[] => {
+export const useDailyTrends = (Transactions: Transaction[]): DailyTrend[] => {
   const trends = useMemo(() => {
-    if (!transactions || transactions.length === 0) {
+    if (!Transactions || Transactions.length === 0) {
       return [];
     }
 
-    const sortedTx = [...transactions].sort((a, b) =>
+    const sortedTx = [...Transactions].sort((a, b) =>
       dayjs(a.date).diff(dayjs(b.date))
     );
 
@@ -37,7 +37,7 @@ export const useDailyTrends = (transactions: Transaction[]): DailyTrend[] => {
       });
 
     return trendData;
-  }, [transactions]);
+  }, [Transactions]);
 
   return trends;
 };

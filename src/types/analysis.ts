@@ -14,6 +14,14 @@ export interface DailyContext {
   obvSignal?: string;
   atrRegime?: string;
   keltnerEvent?: string;
+  trendSignal?: string;
+  maStackSignal?: string;
+  rsiSignal?: string;
+  stochasticSignal?: string;
+  bollingerSignal?: string;
+  obvSignalSignal?: string;
+  atrRegimeSignal?: string;
+  keltnerSignal?: string;
 }
 
 export interface IntradayTiming {
@@ -24,6 +32,12 @@ export interface IntradayTiming {
   bollingerEvent?: string;
   volumeZScore?: number;
   keltnerEvent?: string;
+  trendSignal?: string;
+  maStackSignal?: string;
+  rsiSignal?: string;
+  stochasticSignal?: string;
+  bollingerSignal?: string;
+  keltnerSignal?: string;
 }
 
 export interface AnalysisDetails {

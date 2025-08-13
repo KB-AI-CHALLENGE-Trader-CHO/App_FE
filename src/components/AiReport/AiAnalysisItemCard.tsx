@@ -19,20 +19,31 @@ const AiAnalysisItemCard: React.FC<Props> = ({ item }) => {
 
   const hasDaily = !!item.analysisDetails?.dailyContext;
   const hasIntra = !!item.analysisDetails?.intradayTiming;
+  const canShowEvidence = hasDaily || hasIntra;
+
+  const openEvidence = () => {
+    if (!canShowEvidence) return;
+    if (hasDaily) setDailyOpen(true);
+    else if (hasIntra) setIntraOpen(true);
+  };
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         {item.date ? (
           <Text style={styles.dateTimeText}>
-            {item.date} {item.time}
+            🗓️ {item.date} {item.time}
           </Text>
         ) : (
           <View />
         )}
-        <Text style={[styles.stockText, isBuy ? styles.buyText : styles.sellText]}>
-          {item.stockName}
-          {item.symbol ? ` (${item.symbol})` : ""} {tradeTypeKor}
+        <Text style={styles.stockText}>
+          <Text style={styles.stockNameText}>{item.stockName}</Text>
+          {item.symbol ? <Text style={styles.symbolText}> ({item.symbol})</Text> : null}
+          <Text> </Text>
+          <Text style={isBuy ? styles.tradeTypeBuy : styles.tradeTypeSell}>
+            {tradeTypeKor}
+          </Text>
         </Text>
       </View>
 
@@ -44,41 +55,49 @@ const AiAnalysisItemCard: React.FC<Props> = ({ item }) => {
           </Text>
         ) : null}
 
-        <View style={styles.buttonsRow}>
-          <TouchableOpacity
-            style={[styles.btn, !hasDaily && styles.btnDisabled]}
-            onPress={() => setDailyOpen(true)}
-            disabled={!hasDaily}
-          >
-            <Text style={[styles.btnText, !hasDaily && styles.btnTextDisabled]}>일봉 컨텍스트</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.btn, !hasIntra && styles.btnDisabled]}
-            onPress={() => setIntraOpen(true)}
-            disabled={!hasIntra}
-          >
-            <Text style={[styles.btnText, !hasIntra && styles.btnTextDisabled]}>분봉 타이밍</Text>
-          </TouchableOpacity>
-        </View>
-
         {item.suggestion ? (
           <View style={styles.suggestionSection}>
-            <Text style={styles.label}>제안</Text>
+            <Text style={styles.label}>📌 제안</Text>
             <Text style={styles.suggestionText}>{item.suggestion}</Text>
           </View>
         ) : null}
+
+        <View style={styles.linkRow}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={openEvidence}
+            disabled={!canShowEvidence}
+          >
+            <Text
+              style={[
+                styles.linkText,
+                !canShowEvidence && styles.linkTextDisabled,
+              ]}
+            >
+              제안 근거 보기
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <DailyContextModal
         visible={dailyOpen}
         onClose={() => setDailyOpen(false)}
         context={item.analysisDetails?.dailyContext}
+        onNext={() => {
+          setDailyOpen(false);
+          setIntraOpen(true);
+        }}
       />
+
       <IntradayTimingModal
         visible={intraOpen}
         onClose={() => setIntraOpen(false)}
         timing={item.analysisDetails?.intradayTiming}
+        onPrev={() => {
+          setIntraOpen(false);
+          setDailyOpen(true);
+        }}
       />
     </View>
   );
@@ -102,44 +121,33 @@ const styles = StyleSheet.create({
   },
   dateTimeText: { fontSize: 14, color: "#555" },
   stockText: { fontSize: 16, fontWeight: "bold" },
-  buyText: { color: "#D94A4A" },
-  sellText: { color: "#3067D9" },
+  stockNameText: { color: "#111111" }, // 항상 검정
+  symbolText: { color: "#6B7280" },
+  tradeTypeBuy: { color: "#D94A4A" },
+  tradeTypeSell: { color: "#3067D9" },
   content: { gap: 12 },
   label: { fontWeight: "bold", color: "#333", marginBottom: 6 },
   memoText: { fontSize: 14, fontStyle: "italic", color: "#444" },
-
-  buttonsRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 4,
-  },
-  btn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    backgroundColor: "#EEF2FF",
-    borderWidth: 1,
-    borderColor: "#C7D2FE",
-  },
-  btnDisabled: {
-    backgroundColor: "#F3F4F6",
-    borderColor: "#E5E7EB",
-  },
-  btnText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#4338CA",
-  },
-  btnTextDisabled: {
-    color: "#9CA3AF",
-  },
-
   suggestionSection: {
     backgroundColor: "#F3F4F6",
     borderRadius: 8,
     padding: 12,
   },
   suggestionText: { fontSize: 14, color: "#1F2937", lineHeight: 20 },
+
+  linkRow: {
+    marginTop: 6,
+  },
+  linkText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#696969",
+    textDecorationLine: "underline",
+  },
+  linkTextDisabled: {
+    color: "#9CA3AF",
+    textDecorationLine: "none",
+  },
 });
 
 export default AiAnalysisItemCard;

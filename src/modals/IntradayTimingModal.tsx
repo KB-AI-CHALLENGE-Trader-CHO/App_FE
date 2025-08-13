@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { IntradayTiming } from "../types/analysis";
 
@@ -13,16 +14,17 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   timing?: IntradayTiming;
+  onPrev?: () => void; // 중장기(일봉) 평가로
 }
 
 const label = {
-  trend: "추세",
-  maStack: "이평 정렬",
+  trend: "장중 추세",
+  maStack: "장중 이평선",
   rsi: "RSI",
   stochastic: "스토캐스틱",
-  bollingerEvent: "볼린저 이벤트",
+  bollingerEvent: "장중 볼린저밴드",
   volumeZScore: "거래량 Z-Score",
-  keltnerEvent: "켈트너 위치",
+  keltnerEvent: "켈트너 채널",
 } as const;
 
 const fmt = (n: number | undefined, digits = 2) =>
@@ -35,46 +37,84 @@ const Row: React.FC<{ k: string; v: React.ReactNode }> = ({ k, v }) => (
   </View>
 );
 
-const IntradayTimingModal: React.FC<Props> = ({ visible, onClose, timing }) => {
+const IntradayTimingModal: React.FC<Props> = ({ visible, onClose, timing, onPrev }) => {
+  const handlePrev = () => {
+    onClose();
+    onPrev?.();
+  };
+
+  const withSig = (sig?: string, text?: string | number) =>
+    [sig, text].filter(Boolean).join(" ");
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <View style={styles.header}>
-            <Text style={styles.title}>분봉 타이밍</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Text style={styles.closeText}>닫기</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView contentContainerStyle={styles.content}>
-            {!timing ? (
-              <Text style={styles.empty}>데이터가 없습니다.</Text>
-            ) : (
-              <>
-                <Row k={label.trend} v={timing.trend} />
-                <Row k={label.maStack} v={timing.maStack} />
-                <Row
-                  k={label.rsi}
-                  v={`${fmt(timing.rsi?.value)} (${timing.rsi?.status ?? "-"})`}
-                />
-                <Row
-                  k={label.stochastic}
-                  v={`${fmt(timing.stochastic?.value)} (${timing.stochastic?.status ?? "-"})`}
-                />
-                {typeof timing.volumeZScore === "number" && (
-                  <Row k={label.volumeZScore} v={fmt(timing.volumeZScore, 3)} />
+      {/* 바깥 터치 → 닫기 */}
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay}>
+          {/* 안쪽 터치는 닫히지 않도록 */}
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.modal}>
+              {/* Header */}
+              <View style={styles.header}>
+                <Text style={styles.title}>단기 평가 기준</Text>
+                <TouchableOpacity onPress={handlePrev} style={styles.rightBtn}>
+                  <Text style={styles.rightBtnText}>중장기 평가로</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Body */}
+              <ScrollView contentContainerStyle={styles.content}>
+                {!timing ? (
+                  <Text style={styles.empty}>데이터가 없습니다.</Text>
+                ) : (
+                  <>
+                    <Row k={label.trend} v={withSig(timing.trendSignal, timing.trend)} />
+                    <Row k={label.maStack} v={withSig(timing.maStackSignal, timing.maStack)} />
+                    <Row
+                      k={label.rsi}
+                      v={withSig(
+                        timing.rsiSignal,
+                        `${fmt(timing.rsi?.value)} (${timing.rsi?.status ?? "-"})`
+                      )}
+                    />
+                    <Row
+                      k={label.stochastic}
+                      v={withSig(
+                        timing.stochasticSignal,
+                        `${fmt(timing.stochastic?.value)} (${timing.stochastic?.status ?? "-"})`
+                      )}
+                    />
+                    {typeof timing.volumeZScore === "number" && (
+                      <Row k={label.volumeZScore} v={fmt(timing.volumeZScore, 3)} />
+                    )}
+                    {timing.bollingerEvent && (
+                      <Row
+                        k={label.bollingerEvent}
+                        v={withSig(timing.bollingerSignal, timing.bollingerEvent)}
+                      />
+                    )}
+                    {timing.keltnerEvent && (
+                      <Row
+                        k={label.keltnerEvent}
+                        v={withSig(timing.keltnerSignal, timing.keltnerEvent)}
+                      />
+                    )}
+                  </>
                 )}
-                {timing.bollingerEvent && (
-                  <Row k={label.bollingerEvent} v={timing.bollingerEvent} />
-                )}
-                {timing.keltnerEvent && (
-                  <Row k={label.keltnerEvent} v={timing.keltnerEvent} />
-                )}
-              </>
-            )}
-          </ScrollView>
+              </ScrollView>
+
+              <TouchableOpacity
+                onPress={onClose}
+                style={[styles.rightBtn, styles.rightBtnFloating]}
+                accessibilityRole="button"
+                accessibilityLabel="닫기"
+              >
+                <Text style={styles.rightBtnText}>닫기</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -90,6 +130,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 12,
     maxHeight: "80%",
+    overflow: "hidden",
   },
   header: {
     paddingHorizontal: 16,
@@ -101,18 +142,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: { fontSize: 16, fontWeight: "600" },
-  closeBtn: {
+  rightBtn: {
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 6,
   },
-  closeText: { fontSize: 12, color: "#333" },
-  content: { padding: 16 },
-  row: { flexDirection: "row", marginBottom: 8 },
-  rowKey: { width: 110, color: "#555" },
-  rowVal: { flex: 1, color: "#111" },
+  rightBtnText: { fontSize: 12, color: "#333" },
+  content: {
+    padding: 16,
+    paddingBottom: 37,
+  },
+  rightBtnFloating: {
+    position: "absolute",
+    right: 16,
+    bottom: 16,
+  },
+  row: { flexDirection: "row", marginBottom: 12 },
+  rowKey: { width: 110, color: "#444444ff" },
+  rowVal: { flex: 1, color: "#050505ff" },
   empty: { color: "#666" },
 });
 

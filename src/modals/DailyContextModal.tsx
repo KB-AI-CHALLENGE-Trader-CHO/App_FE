@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { DailyContext } from "../types/analysis";
 
@@ -13,17 +14,18 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   context?: DailyContext;
+  onNext?: () => void;
 }
 
 const label = {
-  trend: "추세",
-  maStack: "이평 정렬",
-  rsi: "RSI",
+  trend: "추세 방향",
+  maStack: "이평선 배열",
+  rsi: "RSI (14일)",
   stochastic: "스토캐스틱",
-  bollingerEvent: "볼린저 이벤트",
+  bollingerEvent: "볼린저밴드",
   obvSignal: "OBV 신호",
-  atrRegime: "ATR 레짐",
-  keltnerEvent: "켈트너 위치",
+  atrRegime: "ATR",
+  keltnerEvent: "켈트너 채널",
 } as const;
 
 const fmt = (n: number | undefined, digits = 2) =>
@@ -36,45 +38,89 @@ const Row: React.FC<{ k: string; v: React.ReactNode }> = ({ k, v }) => (
   </View>
 );
 
-const DailyContextModal: React.FC<Props> = ({ visible, onClose, context }) => {
+const DailyContextModal: React.FC<Props> = ({ visible, onClose, context, onNext }) => {
+  const handleNext = () => {
+    onClose();
+    onNext?.();
+  };
+
+  const withSig = (sig?: string, text?: string | number) =>
+    [sig, text].filter(Boolean).join(" ");
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <View style={styles.header}>
-            <Text style={styles.title}>일봉 컨텍스트</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Text style={styles.closeText}>닫기</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView contentContainerStyle={styles.content}>
-            {!context ? (
-              <Text style={styles.empty}>데이터가 없습니다.</Text>
-            ) : (
-              <>
-                <Row k={label.trend} v={context.trend} />
-                <Row k={label.maStack} v={context.maStack} />
-                <Row
-                  k={label.rsi}
-                  v={`${fmt(context.rsi?.value)} (${context.rsi?.status ?? "-"})`}
-                />
-                <Row
-                  k={label.stochastic}
-                  v={`${fmt(context.stochastic?.value)} (${context.stochastic?.status ?? "-"})`}
-                />
-                {context.bollingerEvent && (
-                  <Row k={label.bollingerEvent} v={context.bollingerEvent} />
+      <TouchableWithoutFeedback onPress={onClose}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.modal}>
+              <View style={styles.header}>
+                <Text style={styles.title}>중장기 평가 기준</Text>
+                <TouchableOpacity onPress={handleNext} style={styles.rightBtn}>
+                  <Text style={styles.rightBtnText}>단기 평가로</Text>
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView contentContainerStyle={styles.content}>
+                {!context ? (
+                  <Text style={styles.empty}>데이터가 없습니다.</Text>
+                ) : (
+                  <>
+                    <Row k={label.trend} v={withSig(context.trendSignal, context.trend)} />
+                    <Row k={label.maStack} v={withSig(context.maStackSignal, context.maStack)} />
+                    <Row
+                      k={label.rsi}
+                      v={withSig(
+                        context.rsiSignal,
+                        `${fmt(context.rsi?.value)} (${context.rsi?.status ?? "-"})`
+                      )}
+                    />
+                    <Row
+                      k={label.stochastic}
+                      v={withSig(
+                        context.stochasticSignal,
+                        `${fmt(context.stochastic?.value)} (${context.stochastic?.status ?? "-"})`
+                      )}
+                    />
+                    {context.bollingerEvent && (
+                      <Row
+                        k={label.bollingerEvent}
+                        v={withSig(context.bollingerSignal, context.bollingerEvent)}
+                      />
+                    )}
+                    {context.obvSignal && (
+                      <Row
+                        k={label.obvSignal}
+                        v={withSig(context.obvSignalSignal, context.obvSignal)}
+                      />
+                    )}
+                    {context.atrRegime && (
+                      <Row
+                        k={label.atrRegime}
+                        v={withSig(context.atrRegimeSignal, context.atrRegime)}
+                      />
+                    )}
+                    {context.keltnerEvent && (
+                      <Row
+                        k={label.keltnerEvent}
+                        v={withSig(context.keltnerSignal, context.keltnerEvent)}
+                      />
+                    )}
+                  </>
                 )}
-                {context.obvSignal && <Row k={label.obvSignal} v={context.obvSignal} />}
-                {context.atrRegime && <Row k={label.atrRegime} v={context.atrRegime} />}
-                {context.keltnerEvent && (
-                  <Row k={label.keltnerEvent} v={context.keltnerEvent} />
-                )}
-              </>
-            )}
-          </ScrollView>
+              </ScrollView>
+
+              <TouchableOpacity
+                onPress={onClose}
+                style={[styles.rightBtn, styles.rightBtnFloating]}
+                accessibilityRole="button"
+                accessibilityLabel="닫기"
+              >
+                <Text style={styles.rightBtnText}>닫기</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -90,6 +136,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 12,
     maxHeight: "80%",
+    overflow: "hidden",
   },
   header: {
     paddingHorizontal: 16,
@@ -101,18 +148,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: { fontSize: 16, fontWeight: "600" },
-  closeBtn: {
+  rightBtn: {
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 6,
+    backgroundColor: "#F9FAFB",
   },
-  closeText: { fontSize: 12, color: "#333" },
-  content: { padding: 16 },
-  row: { flexDirection: "row", marginBottom: 8 },
-  rowKey: { width: 110, color: "#555" },
-  rowVal: { flex: 1, color: "#111" },
+  rightBtnText: { fontSize: 12, color: "#333" },
+  content: {
+    padding: 16,
+    paddingBottom: 37,
+  },
+  rightBtnFloating: {
+    position: "absolute",
+    right: 16,
+    bottom: 16,
+  },
+  row: { flexDirection: "row", marginBottom: 12 },
+  rowKey: { width: 110, color: "#444444ff" },
+  rowVal: { flex: 1, color: "#050505ff" },
   empty: { color: "#666" },
 });
 
